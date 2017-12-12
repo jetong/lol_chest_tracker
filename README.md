@@ -10,18 +10,18 @@
 
 ## Usage
 * Run add_summoner.sh with supplied arguments:
-```
+&nbsp&nbsp```
   ./add_summoner.sh summoner_name days hours minutes chests_available
 ```
-  where days, hours, and minutes is the amount of time until the next avaialable chest (if hours and minutes are not known,     use 0 as the value)
+&nbsp&nbsp&nbspwhere days, hours, and minutes is the amount of time until the next avaialable chest (if hours and minutes are not known, use 0 as the value)
 
   Example using summoner name faker, 4 days until next available chest, and 2 chests currently available: 
-```  
+&nbsp&nbsp```  
   ./add_summoner.sh faker 4 0 0 2
 ```
 
 * After summoners have been added, simply run ./run.sh (ideally as an hourly cron job) to update lol_data.txt.
-```
+&nbsp&nbsp```
   ./run.sh
 ```
 * View lol_data.txt for chest availability for each summoner tracked.
