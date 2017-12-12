@@ -3,24 +3,38 @@ set -e
 
 API_KEY=$(cat .api_key.txt)
 
-for SUMMONER_NAME in `cat lol_accounts.txt`; do
-  SUMMONER_ID=$(curl -s https://na1.api.riotgames.com/lol/summoner/v3/summoners/by-name/$SUMMONER_NAME?api_key=$API_KEY | jq .id)
+# for each summoner in lol_data.txt, check if a chest has been consumed and/or awarded.
+for LINE in `cat lol_data.txt`; do
+  # parse line of data into variables
+  IFS=':' read NAME ID DAYS_LEFT HOURS_LEFT MINUTES_LEFT TIMESTAMP OLD_CHESTS AVAILABLE_CHESTS <<< "$LINE"
 
-  # get current total number of chests and compare to old total to detect if a chest has been awarded.
-  # update available_chests.txt when there is a difference
-  CURRENT_CHESTS=$(curl -s https://na1.api.riotgames.com/lol/champion-mastery/v3/champion-masteries/by-summoner/$SUMMONER_ID?api_key=$API_KEY | jq .[].chestGranted | grep true |wc -l|tr -d "[:blank:]")
-  OLD_CHESTS=$(grep "^$SUMMONER_NAME:" total_chests.txt | cut -d: -f3)
-  DIFF=$((CURRENT_CHESTS-OLD_CHESTS))
-  AVAILABLE_CHESTS=$(grep "^$SUMMONER_NAME:" available_chests.txt | cut -d: -f2) 
-  AVAILABLE_CHESTS=$(($AVAILABLE_CHESTS - $DIFF))
+  ### compare old_chests with current_chests to see if an available chest has been consumed by user (decrement available_chests)
+  CURRENT_CHESTS=$(curl -s https://na1.api.riotgames.com/lol/champion-mastery/v3/champion-masteries/by-summoner/$ID?api_key=$API_KEY | jq .[].chestGranted | grep true |wc -l|tr -d "[:blank:]")
+  DIFF=$(($CURRENT_CHESTS - $OLD_CHESTS))
+  # decrement available_chests if a chest has been obtained by the user
   if [ $DIFF -ne 0 ]; then
-    sed "s/^$SUMMONER_NAME:.*/$SUMMONER_NAME:$AVAILABLE_CHESTS/" <available_chests.txt >available_chests_tmp.txt
-    mv -f available_chests_tmp.txt available_chests.txt
+    AVAILABLE_CHESTS=$(($AVAILABLE_CHESTS - $DIFF))
+    sed "s/^$NAME:.*/$NAME:$ID:$DAYS_LEFT:$HOURS_LEFT:$MINUTES_LEFT:$TIMESTAMP:$OLD_CHESTS:$AVAILABLE_CHESTS/" <lol_data.txt >lol_data_tmp.txt
+    mv -f lol_data_tmp.txt lol_data.txt
   fi
-    
-  echo "$SUMMONER_NAME:$SUMMONER_ID:$CURRENT_CHESTS" >> total_chests_tmp.txt
+
+  ### if available_chests < 4 && current_date >= next_available_date, then increment available_chests
+  if [ $AVAILABLE_CHESTS -lt 4 ]; then
+    #determine next available date
+    DAYS_LEFT_S=$(($DAYS_LEFT*24*3600))
+    HOURS_LEFT_S=$(($HOURS_LEFT*3600))
+    MINUTES_LEFT_S=$(($MINUTES_LEFT*60))
+    NEXT_AVAILABLE_DATE=$(($TIMESTAMP+$DAYS_LEFT_S+$HOURS_LEFT_S+$MINUTES_LEFT_S))
+
+    CURRENT_DATE=$(date +%s)
+    if [ $CURRENT_DATE -ge $NEXT_AVAILABLE_DATE ]; then
+      TIMESTAMP=$CURRENT_DATE
+      DAYS_LEFT=6
+      HOURS_LEFT=23
+      MINUTES_LEFT=59
+      AVAILABLE_CHESTS=$(($AVAILABLE_CHESTS + 1))
+      sed "s/^$NAME:.*/$NAME:$ID:$DAYS_LEFT:$HOURS_LEFT:$MINUTES_LEFT:$TIMESTAMP:$OLD_CHESTS:$AVAILABLE_CHESTS/" <lol_data.txt >lol_data_tmp.txt
+      mv -f lol_data_tmp.txt lol_data.txt
+    fi
+  fi
 done
-
-mv -f total_chests_tmp.txt total_chests.txt
-
-
