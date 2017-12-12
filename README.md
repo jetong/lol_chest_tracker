@@ -6,8 +6,7 @@
 
 ## Setup
 * git clone https://github.com/jetong/lol_chest_tracker.git
-* cd lol_chest_tracker
-* create .api_key.txt with your Riot API key inside
+* in lol_chest_tracker directory, create file .api_key.txt with your Riot API key inside
 
 ## Usage
 * ./add_summoner.sh summoner_name days hours minutes chests_available
