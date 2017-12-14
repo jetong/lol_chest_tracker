@@ -1,5 +1,7 @@
 # Track League of Legends Chest Availability
 
+![demo](https://github.com/jetong/lol_chest_tracker/blob/master/demo.gif)
+
 ## Requirements
 * A Riot API key (https://developer.riotgames.com)
 * Install jq to parse json data from RIOT (https://stedolan.github.io/jq/download/)
