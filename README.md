@@ -26,7 +26,7 @@ where days, hours, and minutes is the amount of time until the next available ch
 ```
 * View lol_data.txt for chest availability of each summoner tracked.
 
-Listed in the following format, where the last data value is the number of chests available. [(see sample)](https://github.com/jetong/lol_chest_tracker/blob/master/lol_data.txt)
+Listed in the following format, where the last data value is the number of chests available. [(see sample)](https://github.com/jetong/lol_chest_tracker/blob/master/demo_data.txt)
 ```
 name:id:days:hours:minutes:timestamp:total_chests:chests_available
 ```
